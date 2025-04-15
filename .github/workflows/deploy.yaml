@@ -6,7 +6,6 @@ on:
       - main
 
 jobs:
-
   test:
     runs-on: ubuntu-latest
     steps:
@@ -21,15 +20,12 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      # ✅ TODO 01 - Add a step to run tests
       - name: Run tests
         run: go test ./...
 
   compile:
-    # ✅ TODO 02 - Make sure that the `test` job is run before `compile`
-    needs: test
     runs-on: ubuntu-latest
-
+    needs: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,3 +40,105 @@ jobs:
 
       - name: Compile binary
         run: go build -o myapp
+
+  build:
+    runs-on: ubuntu-latest
+    needs: compile
+    if: success()
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: docker build -t ghcr.io/<your-username>/<repo-name>:latest .
+
+      - name: Push Docker image
+        run: docker push ghcr.io/<your-username>/<repo-name>:latest
+name: Build CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: go test ./...
+
+  compile:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Compile binary
+        run: go build -o myapp
+
+  build:
+    runs-on: ubuntu-latest
+    needs: compile
+    if: success()
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: docker build -t ghcr.io/vladimirbucur/ci_cd_lab:latest .
+
+      - name: Push Docker image
+        run: docker push ghcr.io/vladimirbucur/ci_cd_lab:latest
