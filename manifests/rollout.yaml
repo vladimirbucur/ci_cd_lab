@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: webserver
-          image: ghcr.io/<todo-add-your-github-username>/ci_cd_lab:latest
+          image: ghcr.io/vladimirbucur/ci_cd_lab:latest
           ports:
             - containerPort: 8080
           imagePullPolicy: Always
